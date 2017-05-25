@@ -56,6 +56,7 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -633,6 +634,18 @@ public abstract class AbstractHTTPSender {
 
             // Get the timeout values set in the runtime
             initializeTimeouts(msgContext, httpClient);
+
+            // Get the existing protocol and port for https.
+            Protocol baseHttps = Protocol.getProtocol(PROTOCOL_HTTPS);
+            int defaultPort = baseHttps.getDefaultPort();
+
+            // Get the Base Protocol Socket Factory.
+            ProtocolSocketFactory baseFactory = baseHttps.getSocketFactory();
+            ProtocolSocketFactory customFactory = new SSLProtocolSocketFactory(baseFactory);
+
+            // Register Custom Socket Factory under https.
+            Protocol customHttps = new Protocol(PROTOCOL_HTTPS, customFactory, defaultPort);
+            Protocol.registerProtocol(PROTOCOL_HTTPS, customHttps);
 
             return httpClient;
         }
